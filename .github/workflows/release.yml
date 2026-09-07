@@ -1,0 +1,56 @@
+# Publishes a GitHub Release with the zipped plugin whenever a tag like v1.3.0 is pushed.
+#
+#   git tag -a v1.4.0 -m "What changed"   # the tag message becomes the release notes
+#   git push origin v1.4.0
+#
+# The tag must match VERSION in Info.lua, or the job fails before publishing anything.
+# A tag with a hyphen (v1.4.0-beta1) is marked as a pre-release, so "latest" keeps
+# pointing at the last stable version.
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check that the tag matches Info.lua
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          lua=$(grep -oE 'major = [0-9]+, minor = [0-9]+, revision = [0-9]+' \
+                SonyAspectMarkerCrop.lrplugin/Info.lua | tr -dc '0-9,' | tr ',' '.')
+          if [ "${tag%%-*}" != "$lua" ]; then
+            echo "::error::Tag is v$tag but Info.lua says $lua"
+            exit 1
+          fi
+
+      - name: Zip the plugin
+        run: zip -r "SonyAspectMarkerCrop-${GITHUB_REF_NAME#v}.zip" SonyAspectMarkerCrop.lrplugin -x '*.DS_Store'
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # actions/checkout stores the tag as a plain pointer to the commit; fetch the
+          # real tag object so its message is available.
+          git fetch --force origin "refs/tags/$GITHUB_REF_NAME:refs/tags/$GITHUB_REF_NAME"
+
+          args=(--title "$GITHUB_REF_NAME")
+          case "$GITHUB_REF_NAME" in *-*) args+=(--prerelease) ;; esac
+
+          if [ "$(git cat-file -t "$GITHUB_REF_NAME")" = tag ]; then
+            git tag -l --format='%(contents:subject)%0a%0a%(contents:body)' "$GITHUB_REF_NAME" > notes.md
+            args+=(--notes-file notes.md)
+          else
+            args+=(--generate-notes)
+          fi
+
+          gh release create "$GITHUB_REF_NAME" SonyAspectMarkerCrop-*.zip "${args[@]}"
