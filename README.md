@@ -77,6 +77,10 @@ One thing to know while it's on: the crops it makes in the background land in yo
 
 ## FAQ
 
+**Doesn't Lightroom's *As Shot* crop already do this?** No, and it's an easy mix-up, because Sony has two separate features. The older **Aspect Ratio** setting (MENU > Shooting > Image Quality/Rec > Aspect Ratio: 3:2, 4:3, 16:9, 1:1) really does crop: the JPEG comes out cropped, and the ARW keeps the full frame plus a crop flag that Lightroom honours as *As Shot*. The **Aspect Marker** is guide lines only. It offers six ratios, 2.35:1, 1.91:1 and 5:4 among them, and it leaves both the JPEG and the ARW at full 3:2, so *As Shot* gives you the whole frame. The marker also shows only while you shoot 3:2, so the two are never on at the same time. This plugin is for the marker.
+
+**Can't the camera crop to the marker itself?** One photo at a time, and JPEGs only. **MENU > Playback > Edit > Crop** can snap to the marker if it was showing when you shot, but it saves a new separate file instead of cropping the original, and Sony's manual states that raw images can't be cropped at all. Nothing in the camera puts the marker onto an ARW – that's what this plugin does.
+
 **"ExifTool not found."** Install it (step 1), restart Lightroom, and check the Plug-in Manager again. Installed somewhere unusual? Use *Browse…* there.
 
 **Nothing was cropped, the summary says "no aspect marker".** The marker was off when the photo was taken, the file was re-saved by software that dropped the Sony metadata, or your camera doesn't store the marker. To look inside a file yourself, see [How it works](#how-it-works).
